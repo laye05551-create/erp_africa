@@ -1,27 +1,20 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from comptabilite.models import CompteComptable, EcritureComptable
-from stocks.models import Produit, MouvementStock
+from comptabilite.models import CompteComptable
+from stocks.models import Produit
 from facturation.models import Facture, Client
 
 @login_required
 def dashboard(request):
-    # Statistiques générales
     total_clients = Client.objects.count()
     total_produits = Produit.objects.count()
     total_factures = Facture.objects.count()
     
-    # Factures par statut
     factures_brouillon = Facture.objects.filter(statut='BR').count()
     factures_payees = Facture.objects.filter(statut='PY').count()
     factures_envoyees = Facture.objects.filter(statut='EN').count()
     
-    # Produits en rupture de stock
-    produits_rupture = Produit.objects.filter(
-        stock_actuel__lte=models.F('stock_minimum')
-    ) if False else [p for p in Produit.objects.all() if p.en_rupture]
-    
-    # Dernières factures
+    produits_rupture = [p for p in Produit.objects.all() if p.en_rupture]
     dernieres_factures = Facture.objects.all()[:5]
     
     context = {
