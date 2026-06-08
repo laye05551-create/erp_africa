@@ -1,24 +1,28 @@
 from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
+from django.contrib.auth import logout
+from django.shortcuts import redirect
+
+def custom_logout(request):
+    logout(request)
+    return redirect('/')
+
+def home(request):
+    if request.user.is_authenticated:
+        return redirect('/dashboard/')
+    return auth_views.LoginView.as_view(
+        template_name='registration/login.html'
+    )(request)
 
 urlpatterns = [
-    # Page de connexion principale
-    path('', auth_views.LoginView.as_view(
-        template_name='registration/login.html'
-    ), name='login'),
+    path('', home, name='login'),
     
-    # Déconnexion
-    path('logout/', auth_views.LogoutView.as_view(
-        next_page='login'
-    ), name='logout'),
+    path('logout/', custom_logout, name='logout'),
     
-    # Dashboard
     path('dashboard/', include('tableau_bord.urls')),
     
-    # Facturation
     path('facturation/', include('facturation.urls')),
     
-    # Admin caché
     path('erp-admin-secret/', admin.site.urls),
 ]
