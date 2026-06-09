@@ -1,7 +1,8 @@
 from django.db import models
-from stocks.models import Produit
+from entreprises.models import Entreprise
 
 class Client(models.Model):
+    entreprise = models.ForeignKey(Entreprise, on_delete=models.CASCADE)
     nom = models.CharField(max_length=200)
     telephone = models.CharField(max_length=20)
     email = models.EmailField(blank=True)
@@ -25,7 +26,8 @@ class Facture(models.Model):
         ('AN', 'Annulée'),
     ]
 
-    numero = models.CharField(max_length=20, unique=True)
+    entreprise = models.ForeignKey(Entreprise, on_delete=models.CASCADE)
+    numero = models.CharField(max_length=20)
     client = models.ForeignKey(Client, on_delete=models.PROTECT)
     date_emission = models.DateField(auto_now_add=True)
     date_echeance = models.DateField()
@@ -36,6 +38,7 @@ class Facture(models.Model):
         verbose_name = "Facture"
         verbose_name_plural = "Factures"
         ordering = ['-date_emission']
+        unique_together = ['entreprise', 'numero']
 
     def __str__(self):
         return f"Facture {self.numero} - {self.client.nom}"
@@ -55,7 +58,7 @@ class Facture(models.Model):
 
 class LigneFacture(models.Model):
     facture = models.ForeignKey(Facture, on_delete=models.CASCADE, related_name='lignes')
-    produit = models.ForeignKey(Produit, on_delete=models.PROTECT)
+    produit = models.ForeignKey('stocks.Produit', on_delete=models.PROTECT)
     quantite = models.IntegerField()
     prix_unitaire = models.DecimalField(max_digits=15, decimal_places=2)
 

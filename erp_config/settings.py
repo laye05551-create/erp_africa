@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # Modules ERP
+    'entreprises',
     'comptabilite',
     'stocks',
     'facturation',
@@ -120,6 +121,6 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 LOGIN_URL = '/admin/login/'
-LOGIN_URL = '/'
+LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/'

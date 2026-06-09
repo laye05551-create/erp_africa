@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP Africa — Inscription</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .inscription-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .logo {
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        .brand {
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #1a1a2e;
+            margin-bottom: 5px;
+        }
+        .tagline {
+            text-align: center;
+            color: #666;
+            font-size: 0.85rem;
+            margin-bottom: 25px;
+        }
+        .btn-inscription {
+            background: #1a1a2e;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 12px;
+            width: 100%;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        .btn-inscription:hover {
+            background: #16213e;
+            color: white;
+        }
+        .form-control {
+            border-radius: 10px;
+            padding: 10px;
+            border: 1.5px solid #e0e0e0;
+        }
+        .form-control:focus {
+            border-color: #1a1a2e;
+            box-shadow: none;
+        }
+        .section-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 20px 0 10px;
+        }
+        .login-link {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        .login-link a {
+            color: #1a1a2e;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="inscription-card">
+        <div class="logo">🌍</div>
+        <div class="brand">ERP Africa</div>
+        <div class="tagline">Créez votre espace entreprise gratuitement</div>
+
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="section-title">Votre entreprise</div>
+            
+            <div class="mb-3">
+                <input type="text" name="nom_entreprise" class="form-control" 
+                       placeholder="Nom de l'entreprise *" required>
+            </div>
+            <div class="row">
+                <div class="col-6 mb-3">
+                    <input type="text" name="ville" class="form-control" 
+                           placeholder="Ville *" required>
+                </div>
+                <div class="col-6 mb-3">
+                    <input type="text" name="telephone" class="form-control" 
+                           placeholder="Téléphone *" required>
+                </div>
+            </div>
+            <div class="mb-3">
+                <input type="email" name="email" class="form-control" 
+                       placeholder="Email professionnel">
+            </div>
+
+            <div class="section-title">Votre compte administrateur</div>
+
+            <div class="mb-3">
+                <input type="text" name="username" class="form-control" 
+                       placeholder="Nom d'utilisateur *" required>
+            </div>
+            <div class="row">
+                <div class="col-6 mb-3">
+                    <input type="password" name="password1" class="form-control" 
+                           placeholder="Mot de passe *" required>
+                </div>
+                <div class="col-6 mb-3">
+                    <input type="password" name="password2" class="form-control" 
+                           placeholder="Confirmer *" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-inscription">
+                Créer mon espace entreprise →
+            </button>
+        </form>
+
+        <div class="login-link">
+            Déjà un compte ? <a href="/">Se connecter</a>
+        </div>
+    </div>
+</body>
+</html>

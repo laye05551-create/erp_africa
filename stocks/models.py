@@ -1,6 +1,8 @@
 from django.db import models
+from entreprises.models import Entreprise
 
 class Categorie(models.Model):
+    entreprise = models.ForeignKey(Entreprise, on_delete=models.CASCADE)
     nom = models.CharField(max_length=100)
     description = models.TextField(blank=True)
 
@@ -13,7 +15,8 @@ class Categorie(models.Model):
 
 
 class Produit(models.Model):
-    code = models.CharField(max_length=20, unique=True)
+    entreprise = models.ForeignKey(Entreprise, on_delete=models.CASCADE)
+    code = models.CharField(max_length=20)
     nom = models.CharField(max_length=200)
     categorie = models.ForeignKey(Categorie, on_delete=models.PROTECT)
     prix_achat = models.DecimalField(max_digits=15, decimal_places=2)
@@ -26,6 +29,7 @@ class Produit(models.Model):
         verbose_name = "Produit"
         verbose_name_plural = "Produits"
         ordering = ['nom']
+        unique_together = ['entreprise', 'code']
 
     def __str__(self):
         return f"{self.code} - {self.nom}"

@@ -17,12 +17,10 @@ def home(request):
 
 urlpatterns = [
     path('', home, name='login'),
-    
     path('logout/', custom_logout, name='logout'),
-    
     path('dashboard/', include('tableau_bord.urls')),
-    
     path('facturation/', include('facturation.urls')),
-    
+    path('entreprises/', include('entreprises.urls')),
     path('erp-admin-secret/', admin.site.urls),
+    path('stocks/', include('stocks.urls')),
 ]
