@@ -2,18 +2,25 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from stocks.models import Produit
 from facturation.models import Facture, Client
-from entreprises.models import MembreEntreprise
+from entreprises.models import MembreEntreprise, Entreprise
+
+def get_entreprise(request):
+    if request.user.is_superuser:
+        return Entreprise.objects.first()
+    try:
+        membre = MembreEntreprise.objects.get(user=request.user)
+        return membre.entreprise
+    except MembreEntreprise.DoesNotExist:
+        return None
 
 @login_required
 def dashboard(request):
-    # Récupérer l'entreprise de l'utilisateur connecté
-    try:
-        membre = MembreEntreprise.objects.get(user=request.user)
-        entreprise = membre.entreprise
-    except MembreEntreprise.DoesNotExist:
-        return redirect('/erp-admin-secret/')
+    entreprise = get_entreprise(request)
+    
+    if not entreprise:
+        # Si pas d'entreprise et pas superuser → page d'erreur simple
+        return render(request, 'tableau_bord/no_entreprise.html')
 
-    # Statistiques filtrées par entreprise
     total_clients = Client.objects.filter(entreprise=entreprise).count()
     total_produits = Produit.objects.filter(entreprise=entreprise).count()
     total_factures = Facture.objects.filter(entreprise=entreprise).count()

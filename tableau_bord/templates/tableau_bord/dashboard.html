@@ -62,19 +62,39 @@
     <div class="row g-0">
         <!-- Sidebar -->
         <div class="sidebar">
-            <div class="navbar-brand mb-4 d-block">🌍 ERP Africa</div>
-            <a href="/dashboard/" class="active"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
-            <a href="/erp-admin-secret/comptabilite/"><i class="bi bi-journal-text me-2"></i>Comptabilité</a>
-            <a href="/erp-admin-secret/stocks/"><i class="bi bi-box-seam me-2"></i>Stocks</a>
-            <a href="/erp-admin-secret/facturation/"><i class="bi bi-receipt me-2"></i>Facturation</a>
-            <a href="/erp-admin-secret/"><i class="bi bi-gear me-2"></i>Administration</a>
-            <form method="post" action="/logout/" style="margin:0">
-    {% csrf_token %}
-    <button type="submit" style="background:none;border:none;color:#ff6b6b;padding:10px 15px;width:100%;text-align:left;border-radius:10px;font-size:0.9rem;cursor:pointer;">
-        <i class="bi bi-box-arrow-left me-2"></i>Déconnexion
-    </button>
-</form>
-        </div>
+    <div class="navbar-brand mb-4 d-block">🌍 ERP Africa</div>
+    <a href="/dashboard/" class="active"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
+    <a href="/stocks/"><i class="bi bi-box-seam me-2"></i>Stocks</a>
+    <a href="/clients/"><i class="bi bi-people me-2"></i>Clients</a>
+    <a href="/factures/"><i class="bi bi-receipt me-2"></i>Factures</a>
+    {% if user.is_superuser %}
+    <a href="/erp-admin-secret/"><i class="bi bi-gear me-2"></i>Administration</a>
+    {% endif %}
+    <form method="post" action="/logout/" style="margin:0">
+        {% csrf_token %}
+        <button type="submit" style="background:none;border:none;color:#ff6b6b;padding:10px 15px;width:100%;text-align:left;border-radius:10px;font-size:0.9rem;cursor:pointer;">
+            <i class="bi bi-box-arrow-left me-2"></i>Déconnexion
+        </button>
+    </form>
+</div>
+<div class="sidebar">
+    <div class="navbar-brand mb-4 d-block">🌍 ERP Africa</div>
+    <a href="/dashboard/" class="active"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
+    <a href="/stocks/"><i class="bi bi-box-seam me-2"></i>Stocks</a>
+    <a href="/stocks/categories/"><i class="bi bi-tags me-2"></i>Catégories</a>
+    <a href="/clients/"><i class="bi bi-people me-2"></i>Clients</a>
+    <a href="/factures/"><i class="bi bi-receipt me-2"></i>Factures</a>
+    <a href="/comptabilite/"><i class="bi bi-journal-text me-2"></i>Comptabilité</a>
+    {% if user.is_superuser %}
+    <a href="/erp-admin-secret/"><i class="bi bi-gear me-2"></i>Administration</a>
+    {% endif %}
+    <form method="post" action="/logout/" style="margin:0">
+        {% csrf_token %}
+        <button type="submit" style="background:none;border:none;color:#ff6b6b;padding:10px 15px;width:100%;text-align:left;border-radius:10px;font-size:0.9rem;cursor:pointer;">
+            <i class="bi bi-box-arrow-left me-2"></i>Déconnexion
+        </button>
+    </form>
+</div>
 
         <!-- Contenu principal -->
         <div class="main-content">

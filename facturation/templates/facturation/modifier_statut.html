@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP Africa — Modifier Statut Facture</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body { background: #f0f2f5; }
+        .sidebar {
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+            position: fixed;
+            width: 220px;
+        }
+        .sidebar a {
+            color: #adb5bd;
+            text-decoration: none;
+            display: block;
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+        .sidebar a:hover, .sidebar a.active {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        .main-content { margin-left: 220px; padding: 30px; }
+        .brand { color: #fff; font-weight: bold; font-size: 1.2rem; margin-bottom: 20px; display: block; }
+        .card { border-radius: 15px; border: none; box-shadow: 0 2px 15px rgba(0,0,0,0.08); }
+        .btn-save { background: #1a1a2e; color: white; border: none; border-radius: 10px; padding: 12px 30px; }
+        .btn-save:hover { background: #16213e; color: white; }
+        .logout-btn { color: #ff6b6b !important; margin-top: 20px; }
+    </style>
+</head>
+<body>
+<div class="container-fluid p-0">
+    <div class="row g-0">
+        <div class="sidebar">
+            <span class="brand">🌍 ERP Africa</span>
+            <a href="/dashboard/"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
+            <a href="/stocks/"><i class="bi bi-box-seam me-2"></i>Stocks</a>
+            <a href="/stocks/categories/"><i class="bi bi-tags me-2"></i>Catégories</a>
+            <a href="/clients/"><i class="bi bi-people me-2"></i>Clients</a>
+            <a href="/factures/" class="active"><i class="bi bi-receipt me-2"></i>Factures</a>
+            {% if user.is_superuser %}
+            <a href="/erp-admin-secret/"><i class="bi bi-gear me-2"></i>Administration</a>
+            {% endif %}
+            <form method="post" action="/logout/" style="margin:0">
+                {% csrf_token %}
+                <button type="submit" style="background:none;border:none;color:#ff6b6b;padding:10px 15px;width:100%;text-align:left;border-radius:10px;font-size:0.9rem;cursor:pointer;">
+                    <i class="bi bi-box-arrow-left me-2"></i>Déconnexion
+                </button>
+            </form>
+        </div>
+
+        <div class="main-content">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="fw-bold mb-0">
+                    <i class="bi bi-receipt me-2"></i>Modifier Statut — Facture {{ facture.numero }}
+                </h4>
+                <a href="/factures/" class="btn btn-outline-dark rounded-pill">
+                    <i class="bi bi-arrow-left me-2"></i>Retour
+                </a>
+            </div>
+
+            <div class="card p-4">
+                <div class="mb-3">
+                    <p><b>Numéro :</b> {{ facture.numero }}</p>
+                    <p><b>Client :</b> {{ facture.client.nom }}</p>
+                    <p><b>Total TTC :</b> {{ facture.total_ttc|floatformat:0 }} FCFA</p>
+                    <p><b>Statut actuel :</b>
+                        {% if facture.statut == 'PY' %}
+                            <span class="badge bg-success">Payée</span>
+                        {% elif facture.statut == 'EN' %}
+                            <span class="badge bg-primary">Envoyée</span>
+                        {% elif facture.statut == 'AN' %}
+                            <span class="badge bg-danger">Annulée</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">Brouillon</span>
+                        {% endif %}
+                    </p>
+                </div>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Nouveau statut</label>
+                        <select name="statut" class="form-control">
+                            <option value="BR" {% if facture.statut == 'BR' %}selected{% endif %}>Brouillon</option>
+                            <option value="EN" {% if facture.statut == 'EN' %}selected{% endif %}>Envoyée</option>
+                            <option value="PY" {% if facture.statut == 'PY' %}selected{% endif %}>Payée</option>
+                            <option value="AN" {% if facture.statut == 'AN' %}selected{% endif %}>Annulée</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-save">
+                        <i class="bi bi-check me-2"></i>Mettre à jour le statut
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

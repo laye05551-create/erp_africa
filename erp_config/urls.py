@@ -6,7 +6,7 @@ from django.shortcuts import redirect
 
 def custom_logout(request):
     logout(request)
-    return redirect('/')
+    return redirect('/login/')
 
 def home(request):
     if request.user.is_authenticated:
@@ -23,4 +23,10 @@ urlpatterns = [
     path('entreprises/', include('entreprises.urls')),
     path('erp-admin-secret/', admin.site.urls),
     path('stocks/', include('stocks.urls')),
+    path('clients/', include('facturation.urls_clients')),
+    path('factures/', include('facturation.urls_factures')),
+    path('login/', auth_views.LoginView.as_view(
+    template_name='registration/login.html'
+), name='login_page'),
+    path('comptabilite/', include('comptabilite.urls')),
 ]

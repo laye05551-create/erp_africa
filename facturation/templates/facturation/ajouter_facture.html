@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP Africa — Nouvelle Facture</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body { background: #f0f2f5; }
+        .sidebar {
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+            position: fixed;
+            width: 220px;
+        }
+        .sidebar a {
+            color: #adb5bd;
+            text-decoration: none;
+            display: block;
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+        .sidebar a:hover, .sidebar a.active {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        .main-content { margin-left: 220px; padding: 30px; }
+        .brand { color: #fff; font-weight: bold; font-size: 1.2rem; margin-bottom: 20px; display: block; }
+        .card { border-radius: 15px; border: none; box-shadow: 0 2px 15px rgba(0,0,0,0.08); }
+        .btn-save { background: #1a1a2e; color: white; border: none; border-radius: 10px; padding: 12px 30px; }
+        .btn-save:hover { background: #16213e; color: white; }
+        .logout-btn { color: #ff6b6b !important; margin-top: 20px; }
+        .ligne-facture { background: #f8f9fa; border-radius: 10px; padding: 15px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+<div class="container-fluid p-0">
+    <div class="row g-0">
+        <div class="sidebar">
+            <span class="brand">🌍 ERP Africa</span>
+            <a href="/dashboard/"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
+            <a href="/stocks/"><i class="bi bi-box-seam me-2"></i>Stocks</a>
+            <a href="/clients/"><i class="bi bi-people me-2"></i>Clients</a>
+            <a href="/factures/" class="active"><i class="bi bi-receipt me-2"></i>Factures</a>
+            <form method="post" action="/logout/" style="margin:0">
+                {% csrf_token %}
+                <button type="submit" class="logout-btn" style="background:none;border:none;padding:10px 15px;width:100%;text-align:left;border-radius:10px;font-size:0.9rem;cursor:pointer;">
+                    <i class="bi bi-box-arrow-left me-2"></i>Déconnexion
+                </button>
+            </form>
+        </div>
+
+        <div class="main-content">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="fw-bold mb-0"><i class="bi bi-receipt me-2"></i>Nouvelle Facture</h4>
+                <a href="/factures/" class="btn btn-outline-dark rounded-pill">
+                    <i class="bi bi-arrow-left me-2"></i>Retour
+                </a>
+            </div>
+
+            <div class="card p-4">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Numéro de facture *</label>
+                            <input type="text" name="numero" class="form-control" 
+                                   placeholder="FAC-001" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Client *</label>
+                            <select name="client" class="form-control" required>
+                                {% for client in clients %}
+                                <option value="{{ client.id }}">{{ client.nom }}</option>
+                                {% empty %}
+                                <option disabled>Aucun client — ajoutez-en un d'abord</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label">Date d'échéance *</label>
+                        <input type="date" name="date_echeance" class="form-control" required>
+                    </div>
+
+                    <h6 class="fw-bold mb-3">Lignes de facture</h6>
+                    <div id="lignes">
+                        <div class="ligne-facture">
+                            <div class="row">
+                                <div class="col-md-4 mb-2">
+                                    <label class="form-label">Produit</label>
+                                    <select name="produit" class="form-control">
+                                        {% for produit in produits %}
+                                        <option value="{{ produit.id }}">{{ produit.nom }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-4 mb-2">
+                                    <label class="form-label">Quantité</label>
+                                    <input type="number" name="quantite" class="form-control" value="1">
+                                </div>
+                                <div class="col-md-4 mb-2">
+                                    <label class="form-label">Prix unitaire (FCFA)</label>
+                                    <input type="number" name="prix_unitaire" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn btn-outline-dark mb-4" onclick="ajouterLigne()">
+                        <i class="bi bi-plus me-2"></i>Ajouter une ligne
+                    </button>
+
+                    <br>
+                    <button type="submit" class="btn btn-save">
+                        <i class="bi bi-check me-2"></i>Créer la facture
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function ajouterLigne() {
+    const lignes = document.getElementById('lignes');
+    const nouvelleLigne = lignes.children[0].cloneNode(true);
+    lignes.appendChild(nouvelleLigne);
+}
+</script>
+</body>
+</html>
