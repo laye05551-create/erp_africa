@@ -1,3 +1,4 @@
+from auditlog.registry import auditlog
 from django.db import models
 from entreprises.models import Entreprise
 
@@ -72,3 +73,6 @@ class LigneFacture(models.Model):
     @property
     def total(self):
         return self.quantite * self.prix_unitaire
+
+auditlog.register(Client)
+auditlog.register(Facture)   

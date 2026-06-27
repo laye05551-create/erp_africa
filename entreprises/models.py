@@ -1,3 +1,4 @@
+from auditlog.registry import auditlog
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -27,7 +28,7 @@ class MembreEntreprise(models.Model):
         ('MA', 'Magasinier'),
         ('CM', 'Commercial'),
     ]
-
+    
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     entreprise = models.ForeignKey(Entreprise, on_delete=models.CASCADE)
     role = models.CharField(max_length=2, choices=ROLE_CHOICES, default='CO')
@@ -39,3 +40,6 @@ class MembreEntreprise(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.entreprise.nom} ({self.get_role_display()})"
+        
+auditlog.register(Entreprise)
+auditlog.register(MembreEntreprise)

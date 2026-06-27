@@ -16,12 +16,16 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+     # Sécurité
+    'axes',
+    'auditlog',
     # Modules ERP
     'entreprises',
     'comptabilite',
     'stocks',
     'facturation',
     'tableau_bord',
+
 ]
 
 MIDDLEWARE = [
@@ -32,6 +36,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+     'axes.middleware.AxesMiddleware',
+     'auditlog.middleware.AuditlogMiddleware',
 ]
 
 ROOT_URLCONF = 'erp_config.urls'
@@ -100,3 +106,14 @@ ADMIN_EMAIL = config('ADMIN_EMAIL')
 CSRF_COOKIE_SECURE = False
 SESSION_COOKIE_SECURE = False
 X_FRAME_OPTIONS = 'DENY'
+
+# Configuration django-axes (anti brute force)
+AXES_FAILURE_LIMIT = 5
+AXES_COOLOFF_TIME = 1
+AXES_LOCKOUT_TEMPLATE = None
+AXES_RESET_ON_SUCCESS = True
+
+AUTHENTICATION_BACKENDS = [
+    'axes.backends.AxesStandaloneBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]

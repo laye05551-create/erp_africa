@@ -1,3 +1,4 @@
+from auditlog.registry import auditlog
 from django.db import models
 from entreprises.models import Entreprise
 
@@ -62,3 +63,6 @@ class MouvementStock(models.Model):
 
     def __str__(self):
         return f"{self.type_mouvement} - {self.produit.nom} - {self.quantite}"
+
+auditlog.register(Produit)
+auditlog.register(MouvementStock)
