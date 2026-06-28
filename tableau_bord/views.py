@@ -6,7 +6,7 @@ from entreprises.models import MembreEntreprise, Entreprise
 
 def get_entreprise(request):
     if request.user.is_superuser:
-        return Entreprise.objects.first()
+        return Entreprise.objects.order_by('id').first()
     try:
         membre = MembreEntreprise.objects.get(user=request.user)
         return membre.entreprise
