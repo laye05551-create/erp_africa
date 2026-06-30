@@ -98,10 +98,18 @@
                                 {% endif %}
                             </td>
                             <td>
-                                <a href="/facturation/facture/{{ facture.id }}/pdf/" 
-                                   class="btn btn-sm btn-outline-dark">
-                                    <i class="bi bi-file-pdf me-1"></i>PDF
-                                </a>
+                 <a href="/facturation/facture/{{ facture.id }}/pdf/" 
+                        class="btn btn-sm btn-outline-dark me-1">
+                        <i class="bi bi-file-pdf me-1"></i>PDF
+                    </a>
+                <a href="/factures/statut/{{ facture.id }}/" 
+                    class="btn btn-sm btn-outline-primary me-1">
+                     <i class="bi bi-pencil"></i>
+                    </a>
+<a href="/factures/supprimer/{{ facture.id }}/" 
+   class="btn btn-sm btn-outline-danger">
+    <i class="bi bi-archive"></i>
+</a>
                             </td>
                         </tr>
                         {% empty %}

@@ -118,5 +118,39 @@
         </div>
     </div>
 </div>
+
+<script>
+// Détection coupure internet
+window.addEventListener('offline', function() {
+    document.body.insertAdjacentHTML('afterbegin', 
+        '<div id="offline-alert" style="position:fixed;top:0;left:0;right:0;background:#dc3545;color:white;text-align:center;padding:12px;z-index:9999;font-weight:bold;">' +
+        '⚠️ Connexion internet perdue ! Ne fermez pas cette page — vos données seront perdues.' +
+        '</div>'
+    );
+});
+
+window.addEventListener('online', function() {
+    const alert = document.getElementById('offline-alert');
+    if (alert) {
+        alert.style.background = '#198754';
+        alert.innerHTML = '✅ Connexion rétablie !';
+        setTimeout(() => alert.remove(), 3000);
+    }
+});
+
+// Avertissement si on quitte la page avec un formulaire en cours
+const form = document.querySelector('form');
+if (form) {
+    let formModifie = false;
+    form.addEventListener('change', () => formModifie = true);
+    window.addEventListener('beforeunload', function(e) {
+        if (formModifie) {
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
+    form.addEventListener('submit', () => formModifie = false);
+}
+</script>
 </body>
 </html>

@@ -34,6 +34,8 @@ class Facture(models.Model):
     date_echeance = models.DateField()
     statut = models.CharField(max_length=2, choices=STATUT_CHOICES, default='BR')
     notes = models.TextField(blank=True)
+    est_supprime = models.BooleanField(default=False)
+    date_suppression = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         verbose_name = "Facture"

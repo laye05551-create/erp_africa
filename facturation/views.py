@@ -56,7 +56,7 @@ def liste_factures(request):
     entreprise = get_entreprise(request)
     if not entreprise:
         return redirect('/')
-    factures = Facture.objects.filter(entreprise=entreprise)
+    factures = Facture.objects.filter(entreprise=entreprise, est_supprime=False)
     return render(request, 'facturation/factures.html', {
         'factures': factures,
         'entreprise': entreprise
@@ -220,3 +220,21 @@ def modifier_statut_facture(request, facture_id):
         'facture': facture,
         'entreprise': entreprise
     })
+
+@login_required
+def supprimer_facture(request, facture_id):
+    entreprise = get_entreprise(request)
+    if not entreprise:
+        return redirect('/')
+    facture = get_object_or_404(Facture, id=facture_id, entreprise=entreprise)
+    if request.method == 'POST':
+        from django.utils import timezone
+        facture.est_supprime = True
+        facture.date_suppression = timezone.now()
+        facture.save()
+        messages.success(request, 'Facture supprimee (archivee).')
+        return redirect('/factures/')
+    return render(request, 'facturation/supprimer_facture.html', {
+        'facture': facture,
+        'entreprise': entreprise
+    })    

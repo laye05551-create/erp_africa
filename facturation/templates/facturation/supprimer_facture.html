@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP Africa — Supprimer Facture</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body { background: #f0f2f5; }
+        .sidebar {
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh; padding: 20px; position: fixed; width: 220px;
+        }
+        .sidebar a { color: #adb5bd; text-decoration: none; display: block; padding: 10px 15px; border-radius: 10px; margin-bottom: 5px; font-size: 0.9rem; }
+        .sidebar a:hover { background: rgba(255,255,255,0.1); color: white; }
+        .main-content { margin-left: 220px; padding: 30px; }
+        .brand { color: #fff; font-weight: bold; font-size: 1.2rem; margin-bottom: 20px; display: block; }
+        .card { border-radius: 15px; border: none; box-shadow: 0 2px 15px rgba(0,0,0,0.08); }
+    </style>
+</head>
+<body>
+<div class="container-fluid p-0">
+    <div class="row g-0">
+        <div class="sidebar">
+            <span class="brand">🌍 ERP Africa</span>
+            <a href="/dashboard/"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
+            <a href="/stocks/"><i class="bi bi-box-seam me-2"></i>Stocks</a>
+            <a href="/clients/"><i class="bi bi-people me-2"></i>Clients</a>
+            <a href="/factures/"><i class="bi bi-receipt me-2"></i>Factures</a>
+        </div>
+        <div class="main-content">
+            <h4 class="fw-bold mb-4 text-danger"><i class="bi bi-archive me-2"></i>Archiver Facture</h4>
+            <div class="card p-4">
+                <div class="alert alert-warning">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Cette facture sera <b>archivee</b> (pas vraiment supprimee) — elle reste dans l'historique pour l'audit.
+                </div>
+                <p><b>Numero :</b> {{ facture.numero }}</p>
+                <p><b>Client :</b> {{ facture.client.nom }}</p>
+                <p><b>Total TTC :</b> {{ facture.total_ttc|floatformat:0 }} FCFA</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger me-2">
+                        <i class="bi bi-archive me-2"></i>Oui, archiver
+                    </button>
+                    <a href="/factures/" class="btn btn-outline-dark">Annuler</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
