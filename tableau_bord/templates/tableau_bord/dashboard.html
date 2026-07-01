@@ -9,12 +9,18 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { background: #f0f2f5; }
+        
+        /* SIDEBAR DESKTOP */
         .sidebar {
             background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
             min-height: 100vh;
             padding: 20px;
             position: fixed;
             width: 220px;
+            top: 0;
+            left: 0;
+            z-index: 100;
+            transition: transform 0.3s ease;
         }
         .sidebar a {
             color: #adb5bd;
@@ -29,14 +35,16 @@
             background: rgba(255,255,255,0.1);
             color: white;
         }
-        .navbar-brand {
-            color: #fff !important;
-            font-weight: bold;
-            font-size: 1.2rem;
-        }
         .main-content {
             margin-left: 220px;
             padding: 30px;
+        }
+        .brand {
+            color: #fff;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            display: block;
         }
         .stat-card {
             border-radius: 15px;
@@ -51,101 +59,143 @@
             padding: 20px;
             box-shadow: 0 2px 15px rgba(0,0,0,0.08);
         }
-        .logout-btn {
-            color: #ff6b6b !important;
-            margin-top: 20px;
+        .logout-btn { color: #ff6b6b !important; margin-top: 20px; }
+
+        /* NAVBAR MOBILE */
+        .mobile-navbar {
+            display: none;
+            background: linear-gradient(90deg, #1a1a2e, #16213e);
+            padding: 12px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 200;
+        }
+        .hamburger {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 99;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 260px;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .sidebar-overlay.open {
+                display: block;
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 15px;
+            }
+            .mobile-navbar {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            .stat-card { margin-bottom: 10px; }
         }
     </style>
 </head>
 <body>
+
+<!-- NAVBAR MOBILE -->
+<div class="mobile-navbar">
+    <button class="hamburger" onclick="toggleSidebar()">
+        <i class="bi bi-list"></i>
+    </button>
+    <span style="color:white;font-weight:bold;">🌍 ERP Africa</span>
+    <span style="color:#adb5bd;font-size:0.8rem;">{{ request.user.username }}</span>
+</div>
+
+<!-- OVERLAY -->
+<div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+
 <div class="container-fluid p-0">
     <div class="row g-0">
         <!-- Sidebar -->
-        <div class="sidebar">
-    <div class="navbar-brand mb-4 d-block">🌍 ERP Africa</div>
-    <a href="/dashboard/" class="active"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
-    <a href="/stocks/"><i class="bi bi-box-seam me-2"></i>Stocks</a>
-    <a href="/clients/"><i class="bi bi-people me-2"></i>Clients</a>
-    <a href="/factures/"><i class="bi bi-receipt me-2"></i>Factures</a>
-    {% if user.is_superuser %}
-    <a href="/erp-admin-secret/"><i class="bi bi-gear me-2"></i>Administration</a>
-    {% endif %}
-    <form method="post" action="/logout/" style="margin:0">
-        {% csrf_token %}
-        <button type="submit" style="background:none;border:none;color:#ff6b6b;padding:10px 15px;width:100%;text-align:left;border-radius:10px;font-size:0.9rem;cursor:pointer;">
-            <i class="bi bi-box-arrow-left me-2"></i>Déconnexion
-        </button>
-    </form>
-</div>
-<div class="sidebar">
-    <div class="navbar-brand mb-4 d-block">🌍 ERP Africa</div>
-    <a href="/dashboard/" class="active"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
-    <a href="/stocks/"><i class="bi bi-box-seam me-2"></i>Stocks</a>
-    <a href="/stocks/categories/"><i class="bi bi-tags me-2"></i>Catégories</a>
-    <a href="/clients/"><i class="bi bi-people me-2"></i>Clients</a>
-    <a href="/factures/"><i class="bi bi-receipt me-2"></i>Factures</a>
-    <a href="/comptabilite/"><i class="bi bi-journal-text me-2"></i>Comptabilité</a>
-    {% if user.is_superuser %}
-    <a href="/erp-admin-secret/"><i class="bi bi-gear me-2"></i>Administration</a>
-    {% endif %}
-    <form method="post" action="/logout/" style="margin:0">
-        {% csrf_token %}
-        <button type="submit" style="background:none;border:none;color:#ff6b6b;padding:10px 15px;width:100%;text-align:left;border-radius:10px;font-size:0.9rem;cursor:pointer;">
-            <i class="bi bi-box-arrow-left me-2"></i>Déconnexion
-        </button>
-    </form>
-</div>
+        <div class="sidebar" id="sidebar">
+            <div class="brand d-none d-md-block">🌍 ERP Africa</div>
+            <a href="/dashboard/" class="active"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
+            <a href="/comptabilite/"><i class="bi bi-journal-text me-2"></i>Comptabilité</a>
+            <a href="/stocks/"><i class="bi bi-box-seam me-2"></i>Stocks</a>
+            <a href="/stocks/categories/"><i class="bi bi-tags me-2"></i>Catégories</a>
+            <a href="/clients/"><i class="bi bi-people me-2"></i>Clients</a>
+            <a href="/factures/"><i class="bi bi-receipt me-2"></i>Factures</a>
+            {% if user.is_superuser %}
+            <a href="/erp-admin-secret/"><i class="bi bi-gear me-2"></i>Administration</a>
+            {% endif %}
+            <form method="post" action="/logout/" style="margin:0">
+                {% csrf_token %}
+                <button type="submit" class="logout-btn" style="background:none;border:none;padding:10px 15px;width:100%;text-align:left;border-radius:10px;font-size:0.9rem;cursor:pointer;">
+                    <i class="bi bi-box-arrow-left me-2"></i>Déconnexion
+                </button>
+            </form>
+        </div>
 
         <!-- Contenu principal -->
         <div class="main-content">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h4 class="fw-bold mb-0">👋 Bonjour, {{ request.user.username }}</h4>
-                <span class="text-muted">🇸🇳 Dakar, Sénégal</span>
+                <span class="text-muted d-none d-md-block">🇸🇳 Dakar, Sénégal</span>
             </div>
 
             <!-- Cartes statistiques -->
             <div class="row mb-4">
-                <div class="col-md-3 mb-3">
+                <div class="col-6 col-md-3 mb-3">
                     <div class="card stat-card p-3" style="background: linear-gradient(135deg, #667eea, #764ba2); color:white">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <div class="fs-2 fw-bold">{{ total_clients }}</div>
-                                <div class="opacity-75">Clients</div>
+                                <div class="fs-3 fw-bold">{{ total_clients }}</div>
+                                <div class="opacity-75 small">Clients</div>
                             </div>
-                            <i class="bi bi-people fs-1 opacity-50"></i>
+                            <i class="bi bi-people fs-2 opacity-50"></i>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3 mb-3">
+                <div class="col-6 col-md-3 mb-3">
                     <div class="card stat-card p-3" style="background: linear-gradient(135deg, #11998e, #38ef7d); color:white">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <div class="fs-2 fw-bold">{{ total_produits }}</div>
-                                <div class="opacity-75">Produits</div>
+                                <div class="fs-3 fw-bold">{{ total_produits }}</div>
+                                <div class="opacity-75 small">Produits</div>
                             </div>
-                            <i class="bi bi-box-seam fs-1 opacity-50"></i>
+                            <i class="bi bi-box-seam fs-2 opacity-50"></i>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3 mb-3">
+                <div class="col-6 col-md-3 mb-3">
                     <div class="card stat-card p-3" style="background: linear-gradient(135deg, #f093fb, #f5576c); color:white">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <div class="fs-2 fw-bold">{{ total_factures }}</div>
-                                <div class="opacity-75">Factures</div>
+                                <div class="fs-3 fw-bold">{{ total_factures }}</div>
+                                <div class="opacity-75 small">Factures</div>
                             </div>
-                            <i class="bi bi-receipt fs-1 opacity-50"></i>
+                            <i class="bi bi-receipt fs-2 opacity-50"></i>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3 mb-3">
+                <div class="col-6 col-md-3 mb-3">
                     <div class="card stat-card p-3" style="background: linear-gradient(135deg, #4facfe, #00f2fe); color:white">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <div class="fs-2 fw-bold">{{ produits_rupture|length }}</div>
-                                <div class="opacity-75">Ruptures Stock</div>
+                                <div class="fs-3 fw-bold">{{ produits_rupture|length }}</div>
+                                <div class="opacity-75 small">Ruptures</div>
                             </div>
-                            <i class="bi bi-exclamation-triangle fs-1 opacity-50"></i>
+                            <i class="bi bi-exclamation-triangle fs-2 opacity-50"></i>
                         </div>
                     </div>
                 </div>
@@ -172,38 +222,40 @@
                 <div class="col-md-7 mb-3">
                     <div class="chart-card">
                         <h6 class="fw-bold mb-3"><i class="bi bi-receipt me-2"></i>Dernières Factures</h6>
-                        <table class="table table-hover">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>Numéro</th>
-                                    <th>Client</th>
-                                    <th>Date</th>
-                                    <th>Statut</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for facture in dernieres_factures %}
-                                <tr>
-                                    <td><b>{{ facture.numero }}</b></td>
-                                    <td>{{ facture.client.nom }}</td>
-                                    <td>{{ facture.date_emission }}</td>
-                                    <td>
-                                        {% if facture.statut == 'PY' %}
-                                            <span class="badge bg-success">Payée</span>
-                                        {% elif facture.statut == 'EN' %}
-                                            <span class="badge bg-primary">Envoyée</span>
-                                        {% elif facture.statut == 'AN' %}
-                                            <span class="badge bg-danger">Annulée</span>
-                                        {% else %}
-                                            <span class="badge bg-warning text-dark">Brouillon</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr><td colspan="4" class="text-center text-muted">Aucune facture</td></tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Numéro</th>
+                                        <th>Client</th>
+                                        <th class="d-none d-md-table-cell">Date</th>
+                                        <th>Statut</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for facture in dernieres_factures %}
+                                    <tr>
+                                        <td><b>{{ facture.numero }}</b></td>
+                                        <td>{{ facture.client.nom }}</td>
+                                        <td class="d-none d-md-table-cell">{{ facture.date_emission }}</td>
+                                        <td>
+                                            {% if facture.statut == 'PY' %}
+                                                <span class="badge bg-success">Payée</span>
+                                            {% elif facture.statut == 'EN' %}
+                                                <span class="badge bg-primary">Envoyée</span>
+                                            {% elif facture.statut == 'AN' %}
+                                                <span class="badge bg-danger">Annulée</span>
+                                            {% else %}
+                                                <span class="badge bg-warning text-dark">Brouillon</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr><td colspan="4" class="text-center text-muted">Aucune facture</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-5 mb-3">
@@ -212,11 +264,11 @@
                         {% for produit in produits_rupture %}
                         <div class="alert alert-danger py-2 mb-2">
                             <b>{{ produit.nom }}</b><br>
-                            <small>Stock actuel : {{ produit.stock_actuel }} | Minimum : {{ produit.stock_minimum }}</small>
+                            <small>Stock : {{ produit.stock_actuel }} | Min : {{ produit.stock_minimum }}</small>
                         </div>
                         {% empty %}
                         <div class="alert alert-success">
-                            <i class="bi bi-check-circle me-2"></i>Aucune rupture de stock
+                            <i class="bi bi-check-circle me-2"></i>Aucune rupture
                         </div>
                         {% endfor %}
                     </div>
@@ -228,6 +280,14 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+// Menu hamburger
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('open');
+}
+
 // Graphique statut factures
 const ctx1 = document.getElementById('facturesChart').getContext('2d');
 new Chart(ctx1, {
@@ -235,7 +295,12 @@ new Chart(ctx1, {
     data: {
         labels: ['Brouillon', 'Envoyées', 'Payées', 'Annulées'],
         datasets: [{
-            data: [{{ factures_brouillon }}, {{ factures_envoyees }}, {{ factures_payees }}, 0],
+            data: [
+                parseInt("{{ factures_brouillon }}"),
+                parseInt("{{ factures_envoyees }}"),
+                parseInt("{{ factures_payees }}"),
+                0
+            ],
             backgroundColor: ['#ffc107', '#0d6efd', '#198754', '#dc3545'],
             borderWidth: 0
         }]
@@ -254,11 +319,15 @@ new Chart(ctx2, {
         labels: ['Clients', 'Produits', 'Factures'],
         datasets: [{
             label: 'Total',
-            data: [{{ total_clients }}, {{ total_produits }}, {{ total_factures }}],
+            data: [
+                parseInt("{{ total_clients }}"),
+                parseInt("{{ total_produits }}"),
+                parseInt("{{ total_factures }}")
+            ],
             backgroundColor: ['#667eea', '#11998e', '#f093fb'],
             borderRadius: 8,
             borderWidth: 0
-       }]
+        }]
     },
     options: {
         responsive: true,
