@@ -30,3 +30,4 @@ urlpatterns = [
 ), name='login_page'),
     path('comptabilite/', include('comptabilite.urls')),
 ]
+ 

@@ -9,19 +9,34 @@ def get_entreprise(request):
         return Entreprise.objects.order_by('id').first()
     try:
         membre = MembreEntreprise.objects.get(user=request.user)
+        if not membre.actif:
+            return None
         return membre.entreprise
     except MembreEntreprise.DoesNotExist:
         return None
 
+def get_role(request):
+    if request.user.is_superuser:
+        return 'AD'
+    try:
+        membre = MembreEntreprise.objects.get(user=request.user)
+        return membre.role
+    except MembreEntreprise.DoesNotExist:
+        return None
 @login_required
 def liste_produits(request):
     entreprise = get_entreprise(request)
     if not entreprise:
         return redirect('/')
+    role = get_role(request)
+    if role not in ['AD', 'MA']:
+        messages.error(request, 'Accès refusé — Stocks réservé aux Administrateurs et Magasiniers.')
+        return redirect('/dashboard/')
     produits = Produit.objects.filter(entreprise=entreprise)
     return render(request, 'stocks/produits.html', {
         'produits': produits,
-        'entreprise': entreprise
+        'entreprise': entreprise,
+        'role': role
     })
 
 @login_required

@@ -13,15 +13,30 @@ def get_entreprise(request):
     except MembreEntreprise.DoesNotExist:
         return None
 
+def get_role(request):
+    if request.user.is_superuser:
+        return 'AD'
+    try:
+        from entreprises.models import MembreEntreprise
+        membre = MembreEntreprise.objects.get(user=request.user)
+        return membre.role
+    except MembreEntreprise.DoesNotExist:
+        return None
+
 @login_required
 def liste_comptes(request):
     entreprise = get_entreprise(request)
     if not entreprise:
         return redirect('/')
+    role = get_role(request)
+    if role not in ['AD', 'CO']:
+        messages.error(request, 'Accès refusé — Comptabilité réservée aux Administrateurs et Comptables.')
+        return redirect('/dashboard/')
     comptes = CompteComptable.objects.all()
     return render(request, 'comptabilite/comptes.html', {
         'comptes': comptes,
-        'entreprise': entreprise
+        'entreprise': entreprise,
+        'role': role
     })
 
 @login_required

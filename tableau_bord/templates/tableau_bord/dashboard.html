@@ -138,6 +138,7 @@
             {% if user.is_superuser %}
             <a href="/erp-admin-secret/"><i class="bi bi-gear me-2"></i>Administration</a>
             {% endif %}
+            <a href="/entreprises/membres/"><i class="bi bi-person-badge me-2"></i>Membres</a>
             <form method="post" action="/logout/" style="margin:0">
                 {% csrf_token %}
                 <button type="submit" class="logout-btn" style="background:none;border:none;padding:10px 15px;width:100%;text-align:left;border-radius:10px;font-size:0.9rem;cursor:pointer;">

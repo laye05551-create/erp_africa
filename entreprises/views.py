@@ -1,8 +1,25 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.contrib.auth import login
+from django.contrib.auth.decorators import login_required
 from .models import Entreprise, MembreEntreprise
+
+def get_entreprise(request):
+    if request.user.is_superuser:
+        return Entreprise.objects.order_by('id').first()
+    try:
+        membre = MembreEntreprise.objects.get(user=request.user)
+        return membre.entreprise
+    except MembreEntreprise.DoesNotExist:
+        return None
+
+def get_role(request):
+    try:
+        membre = MembreEntreprise.objects.get(user=request.user)
+        return membre.role
+    except MembreEntreprise.DoesNotExist:
+        return None
 
 def inscription(request):
     if request.method == 'POST':
@@ -45,7 +62,6 @@ def inscription(request):
             role='AD',
         )
 
-        # Envoyer email de notification à l'admin
         from django.core.mail import send_mail
         from django.conf import settings
         send_mail(
@@ -61,3 +77,92 @@ def inscription(request):
         return redirect('/dashboard/')
 
     return render(request, 'entreprises/inscription.html')
+
+
+@login_required
+def liste_membres(request):
+    entreprise = get_entreprise(request)
+    if not entreprise:
+        return redirect('/')
+    
+    # Seul l'admin peut gérer les membres
+    if not request.user.is_superuser:
+        role = get_role(request)
+        if role != 'AD':
+            messages.error(request, 'Accès refusé — Administrateur uniquement.')
+            return redirect('/dashboard/')
+    
+    membres = MembreEntreprise.objects.filter(entreprise=entreprise)
+    return render(request, 'entreprises/membres.html', {
+        'membres': membres,
+        'entreprise': entreprise
+    })
+
+
+@login_required
+def ajouter_membre(request):
+    entreprise = get_entreprise(request)
+    if not entreprise:
+        return redirect('/')
+    
+    if not request.user.is_superuser:
+        role = get_role(request)
+        if role != 'AD':
+            messages.error(request, 'Accès refusé — Administrateur uniquement.')
+            return redirect('/dashboard/')
+    
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        role = request.POST.get('role')
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request, 'Ce nom d\'utilisateur existe déjà.')
+            return render(request, 'entreprises/ajouter_membre.html', {'entreprise': entreprise})
+
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+        )
+
+        MembreEntreprise.objects.create(
+            user=user,
+            entreprise=entreprise,
+            role=role,
+            actif=True,
+        )
+
+        messages.success(request, f'Membre {username} ajouté avec succès !')
+        return redirect('/entreprises/membres/')
+
+    return render(request, 'entreprises/ajouter_membre.html', {
+        'entreprise': entreprise
+    })
+
+
+@login_required
+def modifier_membre(request, membre_id):
+    entreprise = get_entreprise(request)
+    if not entreprise:
+        return redirect('/')
+    
+    if not request.user.is_superuser:
+        role = get_role(request)
+        if role != 'AD':
+            return redirect('/dashboard/')
+    
+    membre = get_object_or_404(MembreEntreprise, id=membre_id, entreprise=entreprise)
+    
+    if request.method == 'POST':
+        membre.role = request.POST.get('role')
+        membre.actif = request.POST.get('actif') == 'on'
+        membre.save()
+        messages.success(request, 'Membre modifié avec succès !')
+        return redirect('/entreprises/membres/')
+    
+    return render(request, 'entreprises/modifier_membre.html', {
+        'membre': membre,
+        'entreprise': entreprise
+    })

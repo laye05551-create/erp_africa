@@ -20,6 +20,16 @@ def get_entreprise(request):
     except MembreEntreprise.DoesNotExist:
         return None
 
+def get_role(request):
+    if request.user.is_superuser:
+        return 'AD'
+    try:
+        from entreprises.models import MembreEntreprise
+        membre = MembreEntreprise.objects.get(user=request.user)
+        return membre.role
+    except MembreEntreprise.DoesNotExist:
+        return None
+
 @login_required
 def liste_clients(request):
     entreprise = get_entreprise(request)
@@ -50,16 +60,20 @@ def ajouter_client(request):
     return render(request, 'facturation/ajouter_client.html', {
         'entreprise': entreprise
     })
-
 @login_required
 def liste_factures(request):
     entreprise = get_entreprise(request)
     if not entreprise:
         return redirect('/')
+    role = get_role(request)
+    if role not in ['AD', 'CM', 'CO']:
+        messages.error(request, 'Accès refusé.')
+        return redirect('/dashboard/')
     factures = Facture.objects.filter(entreprise=entreprise, est_supprime=False)
     return render(request, 'facturation/factures.html', {
         'factures': factures,
-        'entreprise': entreprise
+        'entreprise': entreprise,
+        'role': role
     })
 
 @login_required
@@ -238,3 +252,4 @@ def supprimer_facture(request, facture_id):
         'facture': facture,
         'entreprise': entreprise
     })    
+
