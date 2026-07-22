@@ -31,3 +31,4 @@ urlpatterns = [
     path('comptabilite/', include('comptabilite.urls')),
 ]
  
+handler404 = 'django.views.defaults.page_not_found'
