@@ -45,3 +45,19 @@ def dashboard(request):
     }
 
     return render(request, 'tableau_bord/dashboard.html', context)
+
+@login_required
+def analyse_ia(request):
+    entreprise = get_entreprise(request)
+    if not entreprise:
+        return redirect('/')
+    
+    from ia_analyse import analyser_entreprise
+    analyse = analyser_entreprise(entreprise)
+    
+    return render(request, 'tableau_bord/ia.html', {
+        'entreprise': entreprise,
+        'recommandations': analyse['recommandations'],
+        'alertes': analyse['alertes'],
+        'statistiques': analyse['statistiques'],
+    })
