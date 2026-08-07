@@ -37,7 +37,7 @@ def analyser_entreprise(entreprise):
                 })
 
         # Valeur totale du stock
-        valeur_stock = sum(p.valeur_stock for p in produits)
+        valeur_stock = sum(float(p.valeur_stock) for p in produits)
         statistiques['valeur_stock'] = valeur_stock
         statistiques['nombre_produits'] = produits.count()
         statistiques['produits_rupture'] = len(ruptures)
@@ -52,12 +52,12 @@ def analyser_entreprise(entreprise):
     
     if factures.exists():
         # Chiffre d'affaires total
-        ca_total = sum(f.total_ttc for f in factures if f.statut == 'PY')
+        ca_total = sum(float(f.total_ttc) for f in factures if f.statut == 'PY')
         statistiques['ca_total'] = ca_total
 
         # Factures impayées
         factures_impayees = factures.filter(statut__in=['BR', 'EN'])
-        montant_impaye = sum(f.total_ttc for f in factures_impayees)
+        montant_impaye = sum(float(f.total_ttc) for f in factures_impayees)
         statistiques['montant_impaye'] = montant_impaye
         statistiques['nombre_factures_impayees'] = factures_impayees.count()
 
