@@ -3,6 +3,7 @@ from django.urls import path, include
 from django.contrib.auth import views as auth_views
 from django.contrib.auth import logout
 from django.shortcuts import redirect
+from django.shortcuts import render, redirect
 
 def custom_logout(request):
     logout(request)
@@ -11,9 +12,7 @@ def custom_logout(request):
 def home(request):
     if request.user.is_authenticated:
         return redirect('/dashboard/')
-    return auth_views.LoginView.as_view(
-        template_name='registration/login.html'
-    )(request)
+    return render(request, 'tableau_bord/accueil.html')
 
 urlpatterns = [
     path('', home, name='login'),
