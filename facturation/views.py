@@ -35,10 +35,23 @@ def liste_clients(request):
     entreprise = get_entreprise(request)
     if not entreprise:
         return redirect('/')
+    
+    recherche = request.GET.get('q', '')
     clients = Client.objects.filter(entreprise=entreprise)
+    
+    if recherche:
+        clients = clients.filter(
+            nom__icontains=recherche
+        ) | clients.filter(
+            telephone__icontains=recherche
+        ) | clients.filter(
+            email__icontains=recherche
+        )
+    
     return render(request, 'facturation/clients.html', {
         'clients': clients,
-        'entreprise': entreprise
+        'entreprise': entreprise,
+        'recherche': recherche
     })
 
 @login_required

@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db.models import Q
 from entreprises.models import MembreEntreprise, Entreprise
 from .models import Produit, Categorie
 
@@ -22,7 +23,8 @@ def get_role(request):
         membre = MembreEntreprise.objects.get(user=request.user)
         return membre.role
     except MembreEntreprise.DoesNotExist:
-        return None
+        return None  # <--- C'était ici que manquait l'instruction !
+
 @login_required
 def liste_produits(request):
     entreprise = get_entreprise(request)
@@ -30,13 +32,22 @@ def liste_produits(request):
         return redirect('/')
     role = get_role(request)
     if role not in ['AD', 'MA']:
-        messages.error(request, 'Accès refusé — Stocks réservé aux Administrateurs et Magasiniers.')
+        messages.error(request, 'Accès refusé.')
         return redirect('/dashboard/')
+    
+    recherche = request.GET.get('q', '')
     produits = Produit.objects.filter(entreprise=entreprise)
+    
+    if recherche:
+        produits = produits.filter(
+            Q(nom__icontains=recherche) | Q(code__icontains=recherche)
+        )
+    
     return render(request, 'stocks/produits.html', {
         'produits': produits,
         'entreprise': entreprise,
-        'role': role
+        'role': role,
+        'recherche': recherche
     })
 
 @login_required
@@ -54,7 +65,9 @@ def ajouter_produit(request):
         stock_actuel = request.POST.get('stock_actuel')
         stock_minimum = request.POST.get('stock_minimum')
         unite = request.POST.get('unite')
-        categorie = get_object_or_404(Categorie, id=categorie_id)
+        
+        categorie = get_object_or_404(Categorie, id=categorie_id, entreprise=entreprise)
+        
         Produit.objects.create(
             entreprise=entreprise,
             code=code,
@@ -102,6 +115,7 @@ def ajouter_categorie(request):
     return render(request, 'stocks/ajouter_categorie.html', {
         'entreprise': entreprise
     })
+
 @login_required
 def modifier_produit(request, produit_id):
     entreprise = get_entreprise(request)
@@ -113,7 +127,7 @@ def modifier_produit(request, produit_id):
     if request.method == 'POST':
         produit.code = request.POST.get('code')
         produit.nom = request.POST.get('nom')
-        produit.categorie = get_object_or_404(Categorie, id=request.POST.get('categorie'))
+        produit.categorie = get_object_or_404(Categorie, id=request.POST.get('categorie'), entreprise=entreprise)
         produit.prix_achat = request.POST.get('prix_achat')
         produit.prix_vente = request.POST.get('prix_vente')
         produit.stock_actuel = request.POST.get('stock_actuel')

@@ -40,9 +40,16 @@
         <div class="sidebar">
             <span class="brand">🌍 ERP Africa</span>
             <a href="/dashboard/"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
+            <a href="/dashboard/ia/"><i class="bi bi-robot me-2"></i>Analyse IA</a>
+            <a href="/comptabilite/"><i class="bi bi-journal-text me-2"></i>Comptabilité</a>
             <a href="/stocks/" class="active"><i class="bi bi-box-seam me-2"></i>Stocks</a>
+            <a href="/stocks/categories/"><i class="bi bi-tags me-2"></i>Catégories</a>
             <a href="/clients/"><i class="bi bi-people me-2"></i>Clients</a>
             <a href="/factures/"><i class="bi bi-receipt me-2"></i>Factures</a>
+            <a href="/entreprises/membres/"><i class="bi bi-person-badge me-2"></i>Membres</a>
+            {% if user.is_superuser %}
+            <a href="/erp-admin-secret/"><i class="bi bi-gear me-2"></i>Administration</a>
+            {% endif %}
             <form method="post" action="/logout/" style="margin:0">
                 {% csrf_token %}
                 <button type="submit" class="logout-btn" style="background:none;border:none;padding:10px 15px;width:100%;text-align:left;border-radius:10px;font-size:0.9rem;cursor:pointer;">
@@ -59,6 +66,26 @@
                 </a>
             </div>
 
+            <!-- Barre de recherche -->
+            <form method="get" action="/stocks/" class="mb-4">
+                <div class="input-group">
+                    <input type="text" name="q" class="form-control"
+                           placeholder="Rechercher un produit par nom ou code..."
+                           value="{{ recherche }}">
+                    <button type="submit" class="btn btn-dark">
+                        <i class="bi bi-search"></i>
+                    </button>
+                    {% if recherche %}
+                    <a href="/stocks/" class="btn btn-outline-secondary">
+                        <i class="bi bi-x"></i> Effacer
+                    </a>
+                    {% endif %}
+                </div>
+                {% if recherche %}
+                <small class="text-muted mt-1 d-block">{{ produits|length }} résultat(s) pour "{{ recherche }}"</small>
+                {% endif %}
+            </form>
+
             {% if messages %}
             {% for message in messages %}
             <div class="alert alert-success">{{ message }}</div>
@@ -68,17 +95,17 @@
             <div class="card p-3">
                 <table class="table table-hover">
                     <thead class="table-dark">
-    <tr>
-        <th>Code</th>
-        <th>Produit</th>
-        <th>Catégorie</th>
-        <th>Prix Achat</th>
-        <th>Prix Vente</th>
-        <th>Stock</th>
-        <th>Statut</th>
-        <th>Actions</th>
-    </tr>
-</thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Produit</th>
+                            <th>Catégorie</th>
+                            <th>Prix Achat</th>
+                            <th>Prix Vente</th>
+                            <th>Stock</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
                     <tbody>
                         {% for produit in produits %}
                         <tr>
@@ -95,19 +122,23 @@
                                 <span class="badge bg-success">OK</span>
                                 {% endif %}
                             </td>
-                           <td>
-    <a href="/stocks/modifier/{{ produit.id }}/" class="btn btn-sm btn-outline-primary me-1">
-        <i class="bi bi-pencil"></i>
-    </a>
-    <a href="/stocks/supprimer/{{ produit.id }}/" class="btn btn-sm btn-outline-danger">
-        <i class="bi bi-trash"></i>
-    </a>
-</td>
+                            <td>
+                                <a href="/stocks/modifier/{{ produit.id }}/" class="btn btn-sm btn-outline-primary me-1">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="/stocks/supprimer/{{ produit.id }}/" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="7" class="text-center text-muted py-4">
+                            <td colspan="8" class="text-center text-muted py-4">
+                                {% if recherche %}
+                                Aucun produit trouvé pour "{{ recherche }}"
+                                {% else %}
                                 Aucun produit — <a href="/stocks/ajouter/">Ajouter le premier</a>
+                                {% endif %}
                             </td>
                         </tr>
                         {% endfor %}
@@ -117,5 +148,18 @@
         </div>
     </div>
 </div>
+
+<script>
+window.addEventListener('offline', function() {
+    document.body.insertAdjacentHTML('afterbegin',
+        '<div id="offline-alert" style="position:fixed;top:0;left:0;right:0;background:#dc3545;color:white;text-align:center;padding:12px;z-index:9999;font-weight:bold;">' +
+        '⚠️ Connexion internet perdue !</div>'
+    );
+});
+window.addEventListener('online', function() {
+    const alert = document.getElementById('offline-alert');
+    if (alert) alert.remove();
+});
+</script>
 </body>
 </html>
