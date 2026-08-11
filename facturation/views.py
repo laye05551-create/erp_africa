@@ -82,13 +82,23 @@ def liste_factures(request):
     if role not in ['AD', 'CM', 'CO']:
         messages.error(request, 'Accès refusé.')
         return redirect('/dashboard/')
+    
+    recherche = request.GET.get('q', '')
     factures = Facture.objects.filter(entreprise=entreprise, est_supprime=False)
+    
+    if recherche:
+        factures = factures.filter(
+            numero__icontains=recherche
+        ) | factures.filter(
+            client__nom__icontains=recherche
+        )
+    
     return render(request, 'facturation/factures.html', {
         'factures': factures,
         'entreprise': entreprise,
-        'role': role
+        'role': role,
+        'recherche': recherche
     })
-
 @login_required
 def ajouter_facture(request):
     entreprise = get_entreprise(request)
@@ -265,4 +275,178 @@ def supprimer_facture(request, facture_id):
         'facture': facture,
         'entreprise': entreprise
     })    
+
+@login_required
+def exporter_factures_excel(request):
+    entreprise = get_entreprise(request)
+    if not entreprise:
+        return redirect('/')
+    
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment
+    from django.http import HttpResponse
+    
+    # Créer le fichier Excel
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Factures"
+    
+    # Style en-tête
+    header_font = Font(bold=True, color="FFFFFF", size=12)
+    header_fill = PatternFill(start_color="1a1a2e", end_color="1a1a2e", fill_type="solid")
+    
+    # En-têtes colonnes
+    headers = ['Numéro', 'Client', 'Date Emission', 'Date Echéance', 'Total HT', 'TVA 18%', 'Total TTC', 'Statut']
+    for col, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col, value=header)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal='center')
+    
+    # Largeur des colonnes
+    ws.column_dimensions['A'].width = 15
+    ws.column_dimensions['B'].width = 25
+    ws.column_dimensions['C'].width = 15
+    ws.column_dimensions['D'].width = 15
+    ws.column_dimensions['E'].width = 18
+    ws.column_dimensions['F'].width = 15
+    ws.column_dimensions['G'].width = 18
+    ws.column_dimensions['H'].width = 12
+    
+    # Données
+    factures = Facture.objects.filter(entreprise=entreprise, est_supprime=False)
+    statuts = {'BR': 'Brouillon', 'EN': 'Envoyée', 'PY': 'Payée', 'AN': 'Annulée'}
+    
+    for row, facture in enumerate(factures, 2):
+        ws.cell(row=row, column=1, value=facture.numero)
+        ws.cell(row=row, column=2, value=facture.client.nom)
+        ws.cell(row=row, column=3, value=str(facture.date_emission))
+        ws.cell(row=row, column=4, value=str(facture.date_echeance))
+        ws.cell(row=row, column=5, value=float(facture.total_ht))
+        ws.cell(row=row, column=6, value=float(facture.tva))
+        ws.cell(row=row, column=7, value=float(facture.total_ttc))
+        ws.cell(row=row, column=8, value=statuts.get(facture.statut, facture.statut))
+        
+        # Couleur selon statut
+        if facture.statut == 'PY':
+            fill = PatternFill(start_color="D4EDDA", end_color="D4EDDA", fill_type="solid")
+        elif facture.statut == 'AN':
+            fill = PatternFill(start_color="F8D7DA", end_color="F8D7DA", fill_type="solid")
+        else:
+            fill = PatternFill(start_color="FFF3CD", end_color="FFF3CD", fill_type="solid")
+        
+        for col in range(1, 9):
+            ws.cell(row=row, column=col).fill = fill
+    
+    # Réponse HTTP
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename="Factures_{entreprise.nom}.xlsx"'
+    wb.save(response)
+    return response
+
+
+@login_required
+def exporter_clients_excel(request):
+    entreprise = get_entreprise(request)
+    if not entreprise:
+        return redirect('/')
+    
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment
+    from django.http import HttpResponse
+    
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Clients"
+    
+    header_font = Font(bold=True, color="FFFFFF", size=12)
+    header_fill = PatternFill(start_color="1a1a2e", end_color="1a1a2e", fill_type="solid")
+    
+    headers = ['Nom', 'Téléphone', 'Email', 'Adresse', 'NINEA']
+    for col, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col, value=header)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal='center')
+    
+    ws.column_dimensions['A'].width = 25
+    ws.column_dimensions['B'].width = 15
+    ws.column_dimensions['C'].width = 25
+    ws.column_dimensions['D'].width = 30
+    ws.column_dimensions['E'].width = 15
+    
+    clients = Client.objects.filter(entreprise=entreprise)
+    for row, client in enumerate(clients, 2):
+        ws.cell(row=row, column=1, value=client.nom)
+        ws.cell(row=row, column=2, value=client.telephone)
+        ws.cell(row=row, column=3, value=client.email)
+        ws.cell(row=row, column=4, value=client.adresse)
+        ws.cell(row=row, column=5, value=client.ninea)
+    
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename="Clients_{entreprise.nom}.xlsx"'
+    wb.save(response)
+    return response
+
+
+@login_required
+def exporter_stocks_excel(request):
+    entreprise = get_entreprise(request)
+    if not entreprise:
+        return redirect('/')
+    
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment
+    from django.http import HttpResponse
+    
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Stocks"
+    
+    header_font = Font(bold=True, color="FFFFFF", size=12)
+    header_fill = PatternFill(start_color="1a1a2e", end_color="1a1a2e", fill_type="solid")
+    
+    headers = ['Code', 'Produit', 'Catégorie', 'Prix Achat', 'Prix Vente', 'Stock Actuel', 'Stock Minimum', 'Statut']
+    for col, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col, value=header)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal='center')
+    
+    ws.column_dimensions['A'].width = 12
+    ws.column_dimensions['B'].width = 25
+    ws.column_dimensions['C'].width = 20
+    ws.column_dimensions['D'].width = 15
+    ws.column_dimensions['E'].width = 15
+    ws.column_dimensions['F'].width = 15
+    ws.column_dimensions['G'].width = 15
+    ws.column_dimensions['H'].width = 12
+    
+    from stocks.models import Produit
+    produits = Produit.objects.filter(entreprise=entreprise)
+    for row, produit in enumerate(produits, 2):
+        ws.cell(row=row, column=1, value=produit.code)
+        ws.cell(row=row, column=2, value=produit.nom)
+        ws.cell(row=row, column=3, value=produit.categorie.nom)
+        ws.cell(row=row, column=4, value=float(produit.prix_achat))
+        ws.cell(row=row, column=5, value=float(produit.prix_vente))
+        ws.cell(row=row, column=6, value=produit.stock_actuel)
+        ws.cell(row=row, column=7, value=produit.stock_minimum)
+        ws.cell(row=row, column=8, value='Rupture' if produit.en_rupture else 'OK')
+        
+        if produit.en_rupture:
+            fill = PatternFill(start_color="F8D7DA", end_color="F8D7DA", fill_type="solid")
+            for col in range(1, 9):
+                ws.cell(row=row, column=col).fill = fill
+    
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename="Stocks_{entreprise.nom}.xlsx"'
+    wb.save(response)
+    return response
 

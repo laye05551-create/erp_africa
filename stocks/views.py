@@ -157,3 +157,8 @@ def supprimer_produit(request, produit_id):
         'produit': produit,
         'entreprise': entreprise
     })
+
+from django.http import HttpResponse
+
+def exporter_stocks_excel(request):
+    return HttpResponse("Export Excel")

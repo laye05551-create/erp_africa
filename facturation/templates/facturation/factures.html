@@ -52,11 +52,17 @@
         </div>
 
         <div class="main-content">
+            <!-- En-tête unique avec bouton Excel et Nouvelle Facture -->
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h4 class="fw-bold mb-0"><i class="bi bi-receipt me-2"></i>Gestion des Factures</h4>
-                <a href="/factures/ajouter/" class="btn btn-dark rounded-pill">
-                    <i class="bi bi-plus me-2"></i>Nouvelle facture
-                </a>
+                <div>
+                    <a href="/factures/export/excel/" class="btn btn-success rounded-pill me-2">
+                        <i class="bi bi-file-excel me-1"></i>Export Excel
+                    </a>
+                    <a href="/factures/ajouter/" class="btn btn-dark rounded-pill">
+                        <i class="bi bi-plus me-2"></i>Nouvelle facture
+                    </a>
+                </div>
             </div>
 
             {% if messages %}
@@ -98,18 +104,18 @@
                                 {% endif %}
                             </td>
                             <td>
-                 <a href="/facturation/facture/{{ facture.id }}/pdf/" 
-                        class="btn btn-sm btn-outline-dark me-1">
-                        <i class="bi bi-file-pdf me-1"></i>PDF
-                    </a>
-                <a href="/factures/statut/{{ facture.id }}/" 
-                    class="btn btn-sm btn-outline-primary me-1">
-                     <i class="bi bi-pencil"></i>
-                    </a>
-<a href="/factures/supprimer/{{ facture.id }}/" 
-   class="btn btn-sm btn-outline-danger">
-    <i class="bi bi-archive"></i>
-</a>
+                                <a href="/facturation/facture/{{ facture.id }}/pdf/" 
+                                   class="btn btn-sm btn-outline-dark me-1">
+                                    <i class="bi bi-file-pdf me-1"></i>PDF
+                                </a>
+                                <a href="/factures/statut/{{ facture.id }}/" 
+                                   class="btn btn-sm btn-outline-primary me-1">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="/factures/supprimer/{{ facture.id }}/" 
+                                   class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-archive"></i>
+                                </a>
                             </td>
                         </tr>
                         {% empty %}
