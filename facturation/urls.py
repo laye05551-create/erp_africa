@@ -2,5 +2,6 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('facture/<int:facture_id>/pdf/', views.generer_pdf, name='generer_pdf'),
+    # Génère l'URL : /factures/pdf/9/
+    path('pdf/<int:facture_id>/', views.generer_pdf, name='generer_pdf'),
 ]

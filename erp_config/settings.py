@@ -45,7 +45,7 @@ ROOT_URLCONF = 'erp_config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],  # <-- MODIFIÉ ICI
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

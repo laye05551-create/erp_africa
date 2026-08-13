@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Modifier Facture {{ facture.numero }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>✏️ Modifier Facture N° {{ facture.numero }}</h1>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if facture.statut != 'BR' %}
+        <div class="alert alert-warning">
+            ⚠️ On ne peut modifier que les factures en brouillon. Cette facture a le statut : <strong>{{ facture.get_statut_display }}</strong>
+        </div>
+    {% else %}
+
+    <form method="POST" class="mt-4">
+        {% csrf_token %}
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">📋 Informations Générales</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="numero" class="form-label"><strong>Numéro de Facture</strong></label>
+                        <input type="text" class="form-control" id="numero" name="numero" value="{{ facture.numero }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="date_echeance" class="form-label"><strong>Date d'Échéance</strong></label>
+                        <input type="date" class="form-control" id="date_echeance" name="date_echeance" value="{{ facture.date_echeance|date:'Y-m-d' }}" required>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">👤 Client</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="client" class="form-label"><strong>Sélectionner un Client</strong></label>
+                    <select class="form-select" id="client" name="client" required>
+                        <option value="">-- Choisir un client --</option>
+                        {% for c in clients %}
+                            <option value="{{ c.id }}" {% if c.id == facture.client.id %}selected{% endif %}>
+                                {{ c.nom }} ({{ c.telephone }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">📦 Lignes de Facture</h5>
+                <button type="button" class="btn btn-sm btn-light" onclick="ajouterLigne()">➕ Ajouter une ligne</button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped" id="lignesTable">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Produit</th>
+                                <th class="text-end">Quantité</th>
+                                <th class="text-end">Prix Unitaire</th>
+                                <th class="text-end">Total</th>
+                                <th class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lignesBody">
+                            {% for ligne in facture.lignes.all %}
+                            <tr class="ligne-row">
+                                <td>
+                                    <select class="form-select form-select-sm produit-select" name="produit" required onchange="calculerTotal(this)">
+                                        <option value="">-- Choisir --</option>
+                                        {% for p in produits %}
+                                            <option value="{{ p.id }}" {% if p.id == ligne.produit.id %}selected{% endif %}>
+                                                {{ p.nom }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="number" class="form-control form-control-sm text-end quantite" name="quantite" value="{{ ligne.quantite }}" min="1" onchange="calculerTotal(this)">
+                                </td>
+                                <td>
+                                    <input type="number" class="form-control form-control-sm text-end prix_unitaire" name="prix_unitaire" value="{{ ligne.prix_unitaire }}" step="0.01" min="0" onchange="calculerTotal(this)">
+                                </td>
+                                <td class="text-end">
+                                    <strong class="total-ligne">{{ ligne.total|floatformat:0 }}</strong> FCFA
+                                </td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-sm btn-danger" onclick="supprimerLigne(this)">🗑️</button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-md-6 ms-auto">
+                        <div class="bg-light p-3 rounded">
+                            <div class="row mb-2">
+                                <div class="col-8"><strong>Total HT :</strong></div>
+                                <div class="col-4 text-end" id="totalHT">0</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-8"><strong>TVA (18%) :</strong></div>
+                                <div class="col-4 text-end" id="totalTVA">0</div>
+                            </div>
+                            <hr>
+                            <div class="row">
+                                <div class="col-8"><strong>TOTAL TTC :</strong></div>
+                                <div class="col-4 text-end text-success"><strong id="totalTTC">0</strong></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-4 flex-wrap">
+            <button type="submit" class="btn btn-success">💾 Enregistrer les modifications</button>
+            <a href="/factures/detail/{{ facture.id }}/" class="btn btn-secondary">← Annuler</a>
+        </div>
+    </form>
+
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_script %}
+<script>
+function ajouterLigne() {
+    const table = document.getElementById('lignesBody');
+    const row = document.createElement('tr');
+    row.className = 'ligne-row';
+    row.innerHTML = `
+        <td>
+            <select class="form-select form-select-sm produit-select" name="produit" onchange="calculerTotal(this)">
+                <option value="">-- Choisir --</option>
+                {% for p in produits %}
+                    <option value="{{ p.id }}">{{ p.nom }}</option>
+                {% endfor %}
+            </select>
+        </td>
+        <td>
+            <input type="number" class="form-control form-control-sm text-end quantite" name="quantite" value="1" min="1" onchange="calculerTotal(this)">
+        </td>
+        <td>
+            <input type="number" class="form-control form-control-sm text-end prix_unitaire" name="prix_unitaire" value="0" step="0.01" min="0" onchange="calculerTotal(this)">
+        </td>
+        <td class="text-end">
+            <strong class="total-ligne">0</strong> FCFA
+        </td>
+        <td class="text-center">
+            <button type="button" class="btn btn-sm btn-danger" onclick="supprimerLigne(this)">🗑️</button>
+        </td>
+    `;
+    table.appendChild(row);
+}
+
+function supprimerLigne(btn) {
+    btn.closest('.ligne-row').remove();
+    calculerTotaux();
+}
+
+function calculerTotal(input) {
+    const row = input.closest('.ligne-row');
+    const quantite = parseFloat(row.querySelector('.quantite').value) || 0;
+    const prix = parseFloat(row.querySelector('.prix_unitaire').value) || 0;
+    const total = quantite * prix;
+    row.querySelector('.total-ligne').textContent = Math.round(total);
+    calculerTotaux();
+}
+
+function calculerTotaux() {
+    let totalHT = 0;
+    document.querySelectorAll('.ligne-row').forEach(row => {
+        const quantite = parseFloat(row.querySelector('.quantite').value) || 0;
+        const prix = parseFloat(row.querySelector('.prix_unitaire').value) || 0;
+        totalHT += quantite * prix;
+    });
+    
+    const tva = Math.round(totalHT * 0.18);
+    const ttc = totalHT + tva;
+    
+    document.getElementById('totalHT').textContent = Math.round(totalHT).toLocaleString('fr-FR') + ' FCFA';
+    document.getElementById('totalTVA').textContent = tva.toLocaleString('fr-FR') + ' FCFA';
+    document.getElementById('totalTTC').textContent = Math.round(ttc).toLocaleString('fr-FR') + ' FCFA';
+}
+
+calculerTotaux();
+</script>
+{% endblock %}

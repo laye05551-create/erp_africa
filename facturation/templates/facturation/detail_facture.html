@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Détail Facture {{ facture.numero }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>📋 Facture N° <strong>{{ facture.numero }}</strong></h1>
+        </div>
+        <div class="col-md-4 text-end">
+            <span class="badge bg-{% if facture.statut == 'BR' %}warning{% elif facture.statut == 'EN' %}info{% elif facture.statut == 'PY' %}success{% else %}danger{% endif %}">
+                {{ facture.get_statut_display }}
+            </span>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h5>📅 Dates</h5>
+                    <p><strong>Émission :</strong> {{ facture.date_emission|date:"d/m/Y" }}</p>
+                    <p><strong>Échéance :</strong> {{ facture.date_echeance|date:"d/m/Y" }}</p>
+                </div>
+                <div class="col-md-6">
+                    <h5>🏢 Entreprise</h5>
+                    <p><strong>{{ entreprise.nom }}</strong></p>
+                    <p>{{ entreprise.adresse }}, {{ entreprise.ville }}</p>
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h5>👤 Client</h5>
+                    <p><strong>{{ facture.client.nom }}</strong></p>
+                    <p>📞 {{ facture.client.telephone }}</p>
+                    <p>✉️ {{ facture.client.email }}</p>
+                    <p>📍 {{ facture.client.adresse }}</p>
+                    <p>🆔 NINEA : {{ facture.client.ninea }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0">📦 Lignes de facture</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Produit</th>
+                            <th class="text-end">Quantité</th>
+                            <th class="text-end">Prix Unitaire</th>
+                            <th class="text-end">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ligne in facture.lignes.all %}
+                        <tr>
+                            <td>{{ ligne.produit.nom }}</td>
+                            <td class="text-end">{{ ligne.quantite }}</td>
+                            <td class="text-end">{{ ligne.prix_unitaire|floatformat:0 }} FCFA</td>
+                            <td class="text-end"><strong>{{ ligne.total|floatformat:0 }} FCFA</strong></td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted">Aucune ligne de facture</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6 ms-auto">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <div class="row mb-2">
+                        <div class="col-8"><strong>Total HT :</strong></div>
+                        <div class="col-4 text-end">{{ facture.total_ht|floatformat:0 }} FCFA</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-8"><strong>TVA (18%) :</strong></div>
+                        <div class="col-4 text-end">{{ facture.tva|floatformat:0 }} FCFA</div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-8"><h5>TOTAL TTC :</h5></div>
+                        <div class="col-4 text-end"><h5 class="text-success">{{ facture.total_ttc|floatformat:0 }} FCFA</h5></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-md-12">
+            <div class="d-flex gap-2 flex-wrap">
+                {% if facture.statut == 'BR' %}
+                    <a href="/factures/modifier/{{ facture.id }}/" class="btn btn-primary">✏️ Modifier</a>
+                {% endif %}
+                
+                <a href="/factures/pdf/{{ facture.id }}/" class="btn btn-danger">📄 Télécharger PDF</a>
+                
+                {% if facture.statut != 'AN' %}
+                    <a href="/factures/statut/{{ facture.id }}/" class="btn btn-warning">🔄 Modifier Statut</a>
+                {% endif %}
+                
+                {% if facture.statut == 'BR' %}
+                    <a href="/factures/supprimer/{{ facture.id }}/" class="btn btn-outline-danger">🗑️ Archiver</a>
+                {% endif %}
+                
+                <a href="/factures/" class="btn btn-secondary ms-auto">← Retour</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

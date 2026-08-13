@@ -1,171 +1,100 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ERP Africa — Stocks</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-    <style>
-        body { background: #f0f2f5; }
-        .sidebar {
-            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
-            min-height: 100vh;
-            padding: 20px;
-            position: fixed;
-            width: 220px;
-        }
-        .sidebar a {
-            color: #adb5bd;
-            text-decoration: none;
-            display: block;
-            padding: 10px 15px;
-            border-radius: 10px;
-            margin-bottom: 5px;
-            font-size: 0.9rem;
-        }
-        .sidebar a:hover, .sidebar a.active {
-            background: rgba(255,255,255,0.1);
-            color: white;
-        }
-        .main-content { margin-left: 220px; padding: 30px; }
-        .brand { color: #fff; font-weight: bold; font-size: 1.2rem; margin-bottom: 20px; display: block; }
-        .card { border-radius: 15px; border: none; box-shadow: 0 2px 15px rgba(0,0,0,0.08); }
-        .logout-btn { color: #ff6b6b !important; margin-top: 20px; }
-    </style>
-</head>
-<body>
-<div class="container-fluid p-0">
-    <div class="row g-0">
-        <div class="sidebar">
-            <span class="brand">🌍 ERP Africa</span>
-            <a href="/dashboard/"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
-            <a href="/dashboard/ia/"><i class="bi bi-robot me-2"></i>Analyse IA</a>
-            <a href="/comptabilite/"><i class="bi bi-journal-text me-2"></i>Comptabilité</a>
-            <a href="/stocks/" class="active"><i class="bi bi-box-seam me-2"></i>Stocks</a>
-            <a href="/stocks/categories/"><i class="bi bi-tags me-2"></i>Catégories</a>
-            <a href="/clients/"><i class="bi bi-people me-2"></i>Clients</a>
-            <a href="/factures/"><i class="bi bi-receipt me-2"></i>Factures</a>
-            <a href="/entreprises/membres/"><i class="bi bi-person-badge me-2"></i>Membres</a>
-            {% if user.is_superuser %}
-            <a href="/erp-admin-secret/"><i class="bi bi-gear me-2"></i>Administration</a>
-            {% endif %}
-            <form method="post" action="/logout/" style="margin:0">
-                {% csrf_token %}
-                <button type="submit" class="logout-btn" style="background:none;border:none;padding:10px 15px;width:100%;text-align:left;border-radius:10px;font-size:0.9rem;cursor:pointer;">
-                    <i class="bi bi-box-arrow-left me-2"></i>Déconnexion
-                </button>
-            </form>
-        </div>
+{% extends 'base.html' %}
 
-        <div class="main-content">
-            <!-- En-tête unique -->
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h4 class="fw-bold mb-0"><i class="bi bi-box-seam me-2"></i>Gestion des Stocks</h4>
-                <div>
-                    <a href="/stocks/export/excel/" class="btn btn-success rounded-pill me-2">
-                        <i class="bi bi-file-excel me-1"></i>Export Excel
-                    </a>
-                    <a href="/stocks/ajouter/" class="btn btn-dark rounded-pill">
-                        <i class="bi bi-plus me-2"></i>Ajouter un produit
-                    </a>
-                </div>
-            </div>
+{% block title %}ERP Africa — Gestion des Stocks{% endblock %}
 
-            <!-- Barre de recherche -->
-            <form method="get" action="/stocks/" class="mb-4">
-                <div class="input-group">
-                    <input type="text" name="q" class="form-control"
-                           placeholder="Rechercher un produit par nom ou code..."
-                           value="{{ recherche }}">
-                    <button type="submit" class="btn btn-dark">
-                        <i class="bi bi-search"></i>
-                    </button>
-                    {% if recherche %}
-                    <a href="/stocks/" class="btn btn-outline-secondary">
-                        <i class="bi bi-x"></i> Effacer
-                    </a>
-                    {% endif %}
-                </div>
-                {% if recherche %}
-                <small class="text-muted mt-1 d-block">{{ produits|length }} résultat(s) pour "{{ recherche }}"</small>
-                {% endif %}
-            </form>
-
-            {% if messages %}
-            {% for message in messages %}
-            <div class="alert alert-success">{{ message }}</div>
-            {% endfor %}
-            {% endif %}
-
-            <div class="card p-3">
-                <table class="table table-hover">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Code</th>
-                            <th>Produit</th>
-                            <th>Catégorie</th>
-                            <th>Prix Achat</th>
-                            <th>Prix Vente</th>
-                            <th>Stock</th>
-                            <th>Statut</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for produit in produits %}
-                        <tr>
-                            <td><b>{{ produit.code }}</b></td>
-                            <td>{{ produit.nom }}</td>
-                            <td>{{ produit.categorie.nom }}</td>
-                            <td>{{ produit.prix_achat }} FCFA</td>
-                            <td>{{ produit.prix_vente }} FCFA</td>
-                            <td>{{ produit.stock_actuel }} {{ produit.unite }}</td>
-                            <td>
-                                {% if produit.en_rupture %}
-                                <span class="badge bg-danger">Rupture</span>
-                                {% else %}
-                                <span class="badge bg-success">OK</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <a href="/stocks/modifier/{{ produit.id }}/" class="btn btn-sm btn-outline-primary me-1">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <a href="/stocks/supprimer/{{ produit.id }}/" class="btn btn-sm btn-outline-danger">
-                                    <i class="bi bi-trash"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="8" class="text-center text-muted py-4">
-                                {% if recherche %}
-                                Aucun produit trouvé pour "{{ recherche }}"
-                                {% else %}
-                                Aucun produit — <a href="/stocks/ajouter/">Ajouter le premier</a>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+{% block content %}
+<!-- En-tête unique -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0"><i class="bi bi-box-seam me-2"></i>Gestion des Stocks</h4>
+    <div>
+        <a href="/stocks/export/excel/" class="btn btn-success rounded-pill me-2">
+            <i class="bi bi-file-excel me-1"></i>Export Excel
+        </a>
+        <a href="/stocks/ajouter/" class="btn btn-dark rounded-pill">
+            <i class="bi bi-plus me-2"></i>Ajouter un produit
+        </a>
     </div>
 </div>
 
-<script>
-window.addEventListener('offline', function() {
-    document.body.insertAdjacentHTML('afterbegin',
-        '<div id="offline-alert" style="position:fixed;top:0;left:0;right:0;background:#dc3545;color:white;text-align:center;padding:12px;z-index:9999;font-weight:bold;">' +
-        '⚠️ Connexion internet perdue !</div>'
-    );
-});
-window.addEventListener('online', function() {
-    const alert = document.getElementById('offline-alert');
-    if (alert) alert.remove();
-});
-</script>
-</body>
-</html>
+<!-- Barre de recherche -->
+<form method="get" action="/stocks/" class="mb-4">
+    <div class="input-group">
+        <input type="text" name="q" class="form-control"
+               placeholder="Rechercher un produit par nom ou code..."
+               value="{{ recherche }}">
+        <button type="submit" class="btn btn-dark">
+            <i class="bi bi-search"></i>
+        </button>
+        {% if recherche %}
+        <a href="/stocks/" class="btn btn-outline-secondary">
+            <i class="bi bi-x"></i> Effacer
+        </a>
+        {% endif %}
+    </div>
+    {% if recherche %}
+    <small class="text-muted mt-1 d-block">{{ produits|length }} résultat(s) pour "{{ recherche }}"</small>
+    {% endif %}
+</form>
+
+{% if messages %}
+{% for message in messages %}
+<div class="alert alert-success">{{ message }}</div>
+{% endfor %}
+{% endif %}
+
+<div class="card p-3">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th>Code</th>
+                    <th>Produit</th>
+                    <th>Catégorie</th>
+                    <th>Prix Achat</th>
+                    <th>Prix Vente</th>
+                    <th>Stock</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for produit in produits %}
+                <tr>
+                    <td><b>{{ produit.code }}</b></td>
+                    <td>{{ produit.nom }}</td>
+                    <td>{{ produit.categorie.nom }}</td>
+                    <td>{{ produit.prix_achat }} FCFA</td>
+                    <td>{{ produit.prix_vente }} FCFA</td>
+                    <td>{{ produit.stock_actuel }} {{ produit.unite }}</td>
+                    <td>
+                        {% if produit.en_rupture %}
+                        <span class="badge bg-danger">Rupture</span>
+                        {% else %}
+                        <span class="badge bg-success">OK</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="/stocks/modifier/{{ produit.id }}/" class="btn btn-sm btn-outline-primary me-1" title="Modifier">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <a href="/stocks/supprimer/{{ produit.id }}/" class="btn btn-sm btn-outline-danger" title="Supprimer">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center text-muted py-4">
+                        {% if recherche %}
+                        Aucun produit trouvé pour "{{ recherche }}"
+                        {% else %}
+                        Aucun produit — <a href="/stocks/ajouter/">Ajouter le premier</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
