@@ -30,13 +30,13 @@ def get_role(request):
 
 def inscription(request):
     if request.method == 'POST':
-        nom_entreprise = request.POST.get('nom_entreprise')
-        ville = request.POST.get('ville')
-        telephone = request.POST.get('telephone')
-        email = request.POST.get('email')
-        username = request.POST.get('username')
-        password1 = request.POST.get('password1')
-        password2 = request.POST.get('password2')
+        nom_entreprise = request.POST.get('nom_entreprise', '').strip()
+        ville = request.POST.get('ville', '').strip()
+        telephone = request.POST.get('telephone', '').strip()
+        email = request.POST.get('email', '').strip()
+        username = request.POST.get('username', '').strip()
+        password1 = request.POST.get('password1')  # pas de strip sur le mot de passe !
+        password2 = request.POST.get('password2')  # pas de strip sur le mot de passe !
 
         if password1 != password2:
             messages.error(request, 'Les mots de passe ne correspondent pas.')
@@ -58,18 +58,15 @@ def inscription(request):
             email=email,
         )
 
-        # Créer l'utilisateur
-        user = User.objects.create_user(
-            username=username,
-            email=email,
-            password=password1,
-        )
+        user = User(username=username, email=email)
+        user.set_password(password1)
+        user.save()
 
         # Lier l'utilisateur à l'entreprise
         MembreEntreprise.objects.create(
             user=user,
             entreprise=entreprise,
-            role='AD',
+            role='AD', 
         )
 
         # Envoyer email de notification
@@ -121,10 +118,11 @@ def ajouter_membre(request):
             return redirect('/dashboard/')
 
     if request.method == 'POST':
-        username = request.POST.get('username')
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        role = request.POST.get('role')
+        if request.method == 'POST':
+           username = request.POST.get('username', '').strip()
+           email = request.POST.get('email', '').strip()
+           password = request.POST.get('password')  # pas de strip
+           role = request.POST.get('role')
 
         if User.objects.filter(username=username).exists():
             messages.error(request, 'Ce nom d\'utilisateur existe déjà.')
